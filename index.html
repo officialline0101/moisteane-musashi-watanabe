@@ -881,9 +881,26 @@
                     let menuDuration = selectedMenuTime || 10;
                     let visitDuration = selectedVisitTime || 0;
                     let irradiationsDuration = selectedirradiationsTime || 0;
+                    
+        // 営業日イベントの時間帯を考慮して処理
+        let isInsideBusinessEvent = businessEventTimes.some(event => 
+            slotStart >= event.start && slotEnd <= event.end
+        );
 
-                    // メニュー時間と訪問回数の時間を合計して、終了時間を設定
-                    slotEnd.setMinutes(slotStart.getMinutes() + menuDuration + visitDuration + irradiationsDuration);
+        // 営業日の時間外は✕を固定（メニューの影響を受けない）
+        if (businessEventTimes.length > 0 && !isInsideBusinessEvent) {
+            cell.textContent = '✕';
+            cell.classList.add('unavailable');
+            continue;
+        }
+
+        // すでにセルが✕の場合は変更しない
+        if (cell.textContent === '✕') {
+            continue;
+        }
+
+        // メニュー時間と訪問回数の時間を合計して、終了時間を設定
+        slotEnd.setMinutes(slotStart.getMinutes() + menuDuration + visitDuration + irradiationsDuration);
 
                     // 終了時間が翌日 (0時以降) になる場合は✕に設定
                     if (slotEnd.getDate() !== slotStart.getDate()) {
